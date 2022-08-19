@@ -1,162 +1,95 @@
-class Calculator {
-    constructor(previousOperandTextElement, currentOperandTextElement) {
-      this.previousOperandTextElement = previousOperandTextElement
-      this.currentOperandTextElement = currentOperandTextElement
-      this.clear()
+const calculator = document.querySelector("#calculator");
+const previousOperand = document.querySelector(".user-input");
+const currentOperand = document.querySelector(".output");
+
+let operator = '';
+
+
+
+calculator.addEventListener('click', e => {
+    //Check if click is on the button and not on the container
+    if (!e.target.closest('button')) return;
+
+    const key = e.target;
+    const keyValue = key.textContent;
+    let previousOperandDisplay = previousOperand.textContent;
+    let currentOperandDisplay = currentOperand.textContent;
+    const { type } = key.dataset;
+    lastKeyPressed = type;
+    console.log(type);
+    const prev = previousOperandDisplay;
+    const current = currentOperandDisplay;
+    //Update Display
+    if (type === 'number') {
+        const digits = currentOperandDisplay + keyValue;
+        currentOperand.textContent = parseFloat(digits);
+        //currentOperand.textContent = parseFloat(digits).toLocaleString('en-US');
+    } else if (type === 'operator') {
+        //operator = keyValue;
+        console.log(keyValue);
+        const prev = previousOperandDisplay;
+        const current = currentOperandDisplay;
+        //Compute if previous and current display is filled
+        if (currentOperandDisplay !== '' && previousOperandDisplay !== '' && operator !== '') {
+            previousOperand.textContent = `${operate(prev, current) + keyValue}`;
+            currentOperand.textContent = '';
+            operator = keyValue;
+        } else if (currentOperandDisplay !== '') {
+            //Update Previous Operand Display
+            previousOperand.textContent = currentOperandDisplay + keyValue;
+            currentOperand.textContent = '';
+            operator = keyValue;
+        }
+
+
+    } else if (type === 'decimal') {
+        if (currentOperandDisplay.includes('.')) return
+        currentOperand.textContent = (currentOperandDisplay === '') ? '0.' : currentOperandDisplay + '.';
     }
-  
-    clear() {
-      this.currentOperand = ''
-      this.previousOperand = ''
-      this.operation = undefined
+    else if (type === 'allClear') {
+        allClear();
+    } else if (type === 'delete') {
+        deleteLastDigit();
+    } else if (type === 'equals') {
+        if (currentOperandDisplay === '' || previousOperandDisplay === '') return
+        let result = parseFloat(operate(prev, current));
+        currentOperand.textContent = (currentOperandDisplay.includes('.')) ? result.toFixed(2) : result;
+        previousOperand.textContent = '';
     }
-  
-    delete() {
-      this.currentOperand = this.currentOperand.toString().slice(0, -1)
+
+})
+
+
+
+
+
+const add = (a, b) => { return a + b }
+const subtract = (a, b) => { return a - b };
+const multiply = (a, b) => { return a * b };
+const divide = (a, b) => { return a / b };
+const remainder = (a, b) => { return a % b };
+
+const operate = (firstNum, secondNum) => {
+    let a = parseFloat(firstNum);
+    let b = parseFloat(secondNum);
+    switch (operator) {
+        case '+': return add(a, b);
+        case '-': return subtract(a, b);
+        case '×': return multiply(a, b);
+        case '÷': return (b !== 0) ? divide(a, b) : 0;
+        case '%': return remainder(a, b);
+        default: return ('somethings wrong');
     }
-  
-    appendNumber(number) {
-      if (number === '.' && this.currentOperand.includes('.')) return
-      this.currentOperand = this.currentOperand.toString() + number.toString()
-    }
-  
-    chooseOperation(operation) {
-      if (this.currentOperand === '') return
-      if (this.previousOperand !== '') {
-        this.compute()
-      }
-      this.operation = operation
-      this.previousOperand = this.currentOperand
-      this.currentOperand = ''
-    }
-  
-    compute() {
-      let computation
-      const prev = parseFloat(this.previousOperand)
-      const current = parseFloat(this.currentOperand)
-      if (isNaN(prev) || isNaN(current)) return
-      switch (this.operation) {
-        case '+':
-          computation = prev + current
-          break
-        case '-':
-          computation = prev - current
-          break
-        case '*':
-          computation = prev * current
-          break
-        case '÷':
-          computation = prev / current
-          break
-        default:
-          return
-      }
-      this.currentOperand = computation
-      this.operation = undefined
-      this.previousOperand = ''
-    }
-  
-    getDisplayNumber(number) {
-      const stringNumber = number.toString()
-      const integerDigits = parseFloat(stringNumber.split('.')[0])
-      const decimalDigits = stringNumber.split('.')[1]
-      let integerDisplay
-      if (isNaN(integerDigits)) {
-        integerDisplay = ''
-      } else {
-        integerDisplay = integerDigits.toLocaleString('en', { maximumFractionDigits: 0 })
-      }
-      if (decimalDigits != null) {
-        return `${integerDisplay}.${decimalDigits}`
-      } else {
-        return integerDisplay
-      }
-    }
-  
-    updateDisplay() {
-      this.currentOperandTextElement.innerText =
-        this.getDisplayNumber(this.currentOperand)
-      if (this.operation != null) {
-        this.previousOperandTextElement.innerText =
-          `${this.getDisplayNumber(this.previousOperand)} ${this.operation}`
-      } else {
-        this.previousOperandTextElement.innerText = ''
-      }
-    }
-  }
-  
-  
-  const numberButtons = document.querySelectorAll('[data-number]')
-  const operationButtons = document.querySelectorAll('[data-operation]')
-  const equalsButton = document.querySelector('[data-equals]')
-  const deleteButton = document.querySelector('[data-delete]')
-  const allClearButton = document.querySelector('[data-all-clear]')
-  const previousOperandTextElement = document.querySelector('[data-previous-operand]')
-  const currentOperandTextElement = document.querySelector('[data-current-operand]')
-  
-  const calculator = new Calculator(previousOperandTextElement, currentOperandTextElement)
-  
-  numberButtons.forEach(button => {
-    button.addEventListener('click', () => {
-      calculator.appendNumber(button.innerText)
-      calculator.updateDisplay()
-    })
-  })
-  
-  operationButtons.forEach(button => {
-    button.addEventListener('click', () => {
-      calculator.chooseOperation(button.innerText)
-      calculator.updateDisplay()
-    })
-  })
-  
-  equalsButton.addEventListener('click', button => {
-    calculator.compute()
-    calculator.updateDisplay()
-  })
-  
-  allClearButton.addEventListener('click', button => {
-    calculator.clear()
-    calculator.updateDisplay()
-  })
-  
-  deleteButton.addEventListener('click', button => {
-    calculator.delete()
-    calculator.updateDisplay()
-  })
-  
-  document.addEventListener('keydown', function (event) {
-    let patternForNumbers = /[0-9]/g;
-    let patternForOperators = /[+\-*\/]/g
-    if (event.key.match(patternForNumbers)) {
-      event.preventDefault();
-      calculator.appendNumber(event.key)
-      calculator.updateDisplay()
-    }
-    if (event.key === '.') {
-      event.preventDefault();
-      calculator.appendNumber(event.key)
-      calculator.updateDisplay()
-    }
-    if (event.key.match(patternForOperators)) {
-      event.preventDefault();
-      calculator.chooseOperation(event.key)
-      calculator.updateDisplay()
-    }
-    if (event.key === 'Enter' || event.key === '=') {
-      event.preventDefault();
-      calculator.compute()
-      calculator.updateDisplay()
-    }
-    if (event.key === "Backspace") {
-      event.preventDefault();
-      calculator.delete()
-      calculator.updateDisplay()
-    }
-    if (event.key == 'Delete') {
-      event.preventDefault();
-      calculator.clear()
-      calculator.updateDisplay()
-    }
-  
-  });
+};
+
+
+const allClear = () => {
+    currentOperand.textContent = '';
+    previousOperand.textContent = '';
+    operator = '';
+}
+
+const deleteLastDigit = () => {
+    const currentOperandDisplay = currentOperand.textContent;
+    currentOperand.textContent = currentOperandDisplay.toString().slice(0, -1);
+}
